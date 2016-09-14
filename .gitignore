@@ -1,0 +1,11 @@
+# python stuff
+__pycache__/
+*.py[cod]
+
+# for pycharm
+.idea/
+.project
+.pydevproject
+
+# sphinx build
+_build/
