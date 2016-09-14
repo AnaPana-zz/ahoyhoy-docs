@@ -1,5 +1,5 @@
 Load Balancers
--------------
+--------------
 
 There are two load balancing algorithms available for now:
 
