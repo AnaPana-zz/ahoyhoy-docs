@@ -16,7 +16,20 @@ ClientBuilder
 
 ClientBuilder provides convenient api for creating the specific :class:`~ahoyhoy.client.Client` instance.
 
-.. autoclass:: ClientBuilder
+Abstract class:
+```````````````
+
+.. module:: ahoyhoy.client.builder
+
+.. autoclass:: IClientBuilder
+   :members:
+
+.. module:: ahoyhoy.client
+
+.. autoclass:: LBClientBuilder
+   :members:
+
+.. autoclass:: SessionClientBuilder
    :members:
 
 

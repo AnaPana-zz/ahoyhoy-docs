@@ -8,7 +8,7 @@ Load Balancer & Circuit Breaker
 General case
 ````````````
 
-The example below shows how request can be made with load balancer and circuit breaker for the static list of hosts:
+The following example shows how a request can be made using a load balancer and circuit breaker with a static list of hosts:
 
     >>> from ahoyhoy.utils import Host
     >>> host1, host2, host3 = Host('badhost2.bla', 80), Host('google.com', 80), Host('badhost3.bla', 80)
@@ -19,38 +19,39 @@ The example below shows how request can be made with load balancer and circuit b
     >>> from ahoyhoy.lb import RoundRobinLB
     >>> rrlb = RoundRobinLB(provider)
     >>>
-    >>> from ahoyhoy.client import ClientBuilder
-    >>> client = ClientBuilder.with_lb(rrlb)
+    >>> from ahoyhoy.client import LBClientBuilder
+    >>> client = LBClientBuilder().add_lb(rrlb).build()
     >>> client.get('/')
     <Response [200]>
     >>> client.get('/')
     <Response [200]>
     >>> client.get('/')
     <Response [200]>
+
 
 Let's walk through this example step by step.
 
     >>> from ahoyhoy.utils import Host
     >>> host1, host2, host3 = Host('badhost2.bla', 80), Host('google.com', 80), Host('badhost3.bla', 80)
 
-All the hosts passed to the load balancer have to be named tuples with `address` and `port` parameters. By default protocol will be calculated automatically by the :meth:`service discovery adapter's method <ahoyhoy.servicediscovery.servicediscovery.ServiceDiscoveryAdapter.calculate_protocol>`. Later we'll show an example of how the protocol can be specified explicitly.
+All hosts passed to the load balancer should be `Host` named tuples containing `address` and `port` fields. The default protocol (http or https) will be calculated automatically by the :meth:`service discovery adapter's method <ahoyhoy.servicediscovery.servicediscovery.ServiceDiscoveryAdapter.calculate_protocol>`.
 
     >>> from ahoyhoy.lb.providers import ListProvider
     >>> provider = ListProvider(host1, host2, host3)
 
-`Provider` is an interface for providing list of hosts to the load balancer. Custom providers have to be instantiated from the :class:`~ahoyhoy.lb.providers.iprovider.IProvider` class.
+`Provider` is an interface for providing list of hosts to the load balancer. Custom providers should be derived from the :class:`~ahoyhoy.lb.providers.iprovider.IProvider` class.
 
-In our example we use :class:`~ahoyhoy.lb.providers.ListProvider`. All it does is returns the list of given earlier hosts.
+In this example we use :class:`~ahoyhoy.lb.providers.ListProvider`. It simply returns the list of hosts from before.
 
-Now it's time to create the load balancer instance and pass the provider into it. We're using round robin algorithm for this example.
+Now we create the load balancer instance and give it the provider. We use a round robin algorithm for this example.
 
     >>> from ahoyhoy.lb import RoundRobinLB
     >>> rrlb = RoundRobinLB(provider)
 
-And finally the last step is to create a client, which will use our load balancer. 
+And finally we create a client, using our load balancer.
 
-    >>> from ahoyhoy.client import ClientBuilder
-    >>> client = ClientBuilder.with_lb(rrlb)
+    >>> from ahoyhoy.client import LBClientBuilder
+    >>> client = LBClientBuilder().add_lb(rrlb).build()
     >>> client.get('/')
     <Response [200]>
     >>> client.get('/')
@@ -58,12 +59,12 @@ And finally the last step is to create a client, which will use our load balance
     >>> client.get('/')
     <Response [200]>
 
-Client has built-in circuit breaker algorithm, so if there's a *bad* host, it'll be marked as unavailable and won't be used for the further requests.
+Client has built-in circuit breaker algorithm, so if there's a *bad* host, it'll be marked as unavailable and won't be used for further requests.
 
 
-Another example with random load balancer
-`````````````````````````````````````````
-Here is another example with load balancer, but using random algorithm:
+Another load balancer example
+`````````````````````````````
+Here's another load balancer example, using the random algorithm:
 
     >>> from ahoyhoy.utils import Host
     >>> host1, host2 = Host('badhost2.bla', 80), Host('google.com', 80)
@@ -71,8 +72,8 @@ Here is another example with load balancer, but using random algorithm:
     >>> provider = ListProvider(host1, host2)
     >>> from ahoyhoy.lb import RandomLB
     >>> rrlb = RandomLB(provider)
-    >>> from ahoyhoy.client import ClientBuilder
-    >>> client = ClientBuilder.with_lb(rrlb)
+    >>> from ahoyhoy.client import LBClientBuilder
+    >>> client = LBClientBuilder().add_lb(rrlb).build()
     >>> client.get('/')
     <Response [200]>
 
@@ -80,12 +81,20 @@ Here is another example with load balancer, but using random algorithm:
 Custom Retries
 --------------
 
-By default :class:`~ahoyhoy.client.ClientBuilder` with load balancer uses :func:`ahoyhoy.retries.Retry` function with 3 tries.
-Custom retry function can be aslo passed to the :class:`~ahoyhoy.client.ClientBuilder`, for example:
+By default a :class:`~ahoyhoy.client.LBClientBuilder`'s load balancer uses a :func:`ahoyhoy.retries.Retry` object set to do 3 tries.
+
+Custom `Retry` objects may be passed to :class:`~ahoyhoy.client.LBClientBuilder` like so:
 
     >>> from requests.exceptions import ConnectTimeout
     >>> from ahoyhoy.retries import Retry
     >>> retry = Retry(exceptions=ConnectTimeout, tries=2, delay=0, max_delay=None, backoff=2, jitter=1)
-    >>> client = ClientBuilder.with_lb(rrlb, retry_http_call=retry)
+    >>> client = LBClientBuilder().add_lb(rrlb).add_retries(retry).build()
     >>> client.get('/')
     <Response [200]>
+
+Setting the protocol (http or https)
+------------------------------------
+
+Http is used by default. To use Https, simply make sure that your `Host` uses port 443.
+
+    >>> host1 = Host('api.service.com', 443)
