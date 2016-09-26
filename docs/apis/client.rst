@@ -11,8 +11,8 @@ Client is a wrapper for HTTP calls which allows to use load balancers, circuit b
 .. autofunction:: SimpleClient
 
 
-ClientBuilder
--------------
+Client Builders
+---------------
 
 ClientBuilder provides convenient api for creating the specific :class:`~ahoyhoy.client.Client` instance.
 
@@ -27,9 +27,11 @@ Abstract class:
 .. module:: ahoyhoy.client
 
 .. autoclass:: LBClientBuilder
+   :show-inheritance:
    :members:
 
 .. autoclass:: SessionClientBuilder
+   :show-inheritance:
    :members:
 
 
